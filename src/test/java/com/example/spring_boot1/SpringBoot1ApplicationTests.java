@@ -5,33 +5,41 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.containers.GenericContainer;
+
+import static org.junit.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DemoApplicationTests {
     @Autowired
     TestRestTemplate restTemplate;
 
-    private final GenericContainer<?> PyDev = new GenericContainer<>("devapp")
+    private static final GenericContainer<?> devApp = new GenericContainer<>("devapp")
             .withExposedPorts(8080);
-    private final GenericContainer<?> approved = new GenericContainer<>("prodapp")
+    private static final GenericContainer<?> prodApp = new GenericContainer<>("prodapp")
             .withExposedPorts(8081);
 
     @BeforeAll
-    public void setUp() {
-        PyDev.start();
-        approved.start();
+    public static void setUp() {
+        devApp.start();
+        prodApp.start();
     }
 
     @Test
-    void contextLoads() {
-        Integer portdev = approved.getMappedPort(8080);
-        Integer portprod = approved.getMappedPort(8081);
+    void contextLoadsFirst() {
+        long firstAppPort = devApp.getMappedPort(8080);
+        ResponseEntity<String> entityFromFirst = restTemplate.getForEntity("http://localhost:" + firstAppPort + "/profile", String.class);
 
-//        Assertions.assertEquals(portdev, 8080);
-//        Assertions.assertEquals(portprod, 8081);
+        assertEquals("Current profile is dev", entityFromFirst.getBody());
 
-        restTemplate.getForEntity("http://localhost:" + portdev, String.class);
+    }
+    @Test
+    void contextLoadsSecond() {
+        long secondAppPort = prodApp.getMappedPort(8081);
+        ResponseEntity<String> entityFromSecond = restTemplate.getForEntity("http://localhost:" + secondAppPort + "/profile", String.class);
+
+        assertEquals("Current profile is production", entityFromSecond.getBody());
     }
 
 }
