@@ -11,7 +11,7 @@ import org.testcontainers.containers.GenericContainer;
 import static org.junit.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class DemoApplicationTests {
+class SpringBoot1ApplicationTests {
     @Autowired
     TestRestTemplate restTemplate;
 
